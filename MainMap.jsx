@@ -48,6 +48,9 @@ const MainMap = () => {
         user={user}
       />
       <div className="map-container">
+        <div style={{ padding: '10px', fontWeight: 'bold' }}>
+        My Travel Map
+      </div>
         <MapComponent 
           pins={pins} 
           setPins={setPins} 
