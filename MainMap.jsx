@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
@@ -6,56 +6,62 @@ import MapComponent from '../components/MapComponent';
 
 const MainMap = () => {
   const [pins, setPins] = useState([]);
-  const [flyToCoords, setFlyToCoords] = useState(null);
+  const [selectedCoords, setSelectedCoords] = useState(null);
   const navigate = useNavigate();
 
-  const user = JSON.parse(localStorage.getItem('user'));
+  const currentUser = JSON.parse(localStorage.getItem('user'));
 
   useEffect(() => {
-    fetchPins();
+    loadPins();
   }, []);
 
-  const fetchPins = async () => {
+  const loadPins = async () => {
     try {
-      const res = await axios.get('http://localhost:5000/api/pins', {
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      const response = await axios.get('http://localhost:5000/api/pins', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
       });
-      setPins(res.data);
-    } catch (err) {
-      if (err.response?.status === 401) {
-        handleLogout();
+
+      setPins(response.data);
+    } catch (error) {
+      console.error('Failed to load pins:', error);
+
+      if (error.response?.status === 401) {
+        logoutUser();
       }
-      console.error('Error fetching pins', err);
     }
   };
 
-  const handleLogout = () => {
+  const logoutUser = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     navigate('/login');
   };
 
-  const handlePinClick = (coords) => {
-    setFlyToCoords(coords);
+  const selectPin = (coordinates) => {
+    setSelectedCoords(coordinates);
   };
 
   return (
     <div className="app-container">
-      <Sidebar 
-        pins={pins} 
-        onPinClick={handlePinClick} 
-        onLogout={handleLogout} 
-        user={user}
+      <Sidebar
+        pins={pins}
+        onPinClick={selectPin}
+        onLogout={logoutUser}
+        user={currentUser}
       />
+
       <div className="map-container">
         <div style={{ padding: '10px', fontWeight: 'bold' }}>
-        My Travel Map
-      </div>
-        <MapComponent 
-          pins={pins} 
-          setPins={setPins} 
-          flyToCoords={flyToCoords} 
-          user={user}
+          My Travel Map
+        </div>
+
+        <MapComponent
+          pins={pins}
+          setPins={setPins}
+          flyToCoords={selectedCoords}
+          user={currentUser}
         />
       </div>
     </div>
