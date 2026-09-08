@@ -24,8 +24,15 @@ const Register = () => {
   return (
     <div className="auth-container">
       <div className="auth-card">
-        <h2 className="auth-title">Create an Account</h2>
-        {error && <p style={{ color: 'var(--danger)', marginBottom: '1rem', textAlign: 'center' }}>{error}</p>}
+        <div className="auth-header">
+          <h2 className="auth-title">Create an Account</h2>
+          <p className="auth-subtitle">Start planning your next adventure</p>
+        </div>
+        {error && (
+          <div className="auth-error">
+            {error}
+          </div>
+        )}
         <form onSubmit={handleRegister}>
           <div className="form-group">
             <label>Name</label>
@@ -57,9 +64,14 @@ const Register = () => {
               placeholder="Create a password"
             />
           </div>
-          <button type="submit" className="btn btn-primary">Register</button>
+          <button type="submit" className="btn btn-primary auth-submit">
+            Register
+          </button>
         </form>
-        <Link to="/login" className="auth-link">Already have an account? Login</Link>
+        <div className="auth-footer">
+          <span>Already have an account?</span>
+          <Link to="/login" className="auth-link">Login</Link>
+        </div>
       </div>
     </div>
   );
