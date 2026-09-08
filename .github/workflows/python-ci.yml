@@ -1,26 +1,27 @@
-name: Python CI/CD
+name: React CI
+
 on:
   push:
-    branches: [ "main" ]
+    branches: [main]
+  pull_request:
+    branches: [main]
 
 jobs:
-  build-and-test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          python-version: '3.11'
+          node-version: 20
+          cache: npm
 
-      - name: Install pytest
-        run: pip install pytest
+      - name: Install dependencies
+        run: npm install
 
-      - name: Run tests
-        run: pytest
-
-      - name: Run application
-        run: python app.py
+      - name: Build React application
+        run: npm run build
