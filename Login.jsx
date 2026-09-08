@@ -1,57 +1,71 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import Sidebar from '../components/Sidebar';
+import MapComponent from '../components/MapComponent';
 
-const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+const MainMap = () => {
+  const [pins, setPins] = useState([]);
+  const [selectedCoords, setSelectedCoords] = useState(null);
   const navigate = useNavigate();
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const currentUser = JSON.parse(localStorage.getItem('user'));
+
+  useEffect(() => {
+    loadPins();
+  }, []);
+
+  const loadPins = async () => {
     try {
-      const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
-      localStorage.setItem('token', res.data.token);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
-      navigate('/');
-    } catch (err) {
-      setError(err.response?.data?.msg || 'Error logging in');
+      const response = await axios.get('http://localhost:5000/api/pins', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        }
+      });
+
+      setPins(response.data);
+    } catch (error) {
+      console.error('Failed to load pins:', error);
+
+      if (error.response?.status === 401) {
+        logoutUser();
+      }
     }
   };
 
+  const logoutUser = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    navigate('/login');
+  };
+
+  const selectPin = (coordinates) => {
+    setSelectedCoords(coordinates);
+  };
+
   return (
-    <div className="auth-container">
-      <div className="auth-card">
-        <h2 className="auth-title">Welcome Back</h2>
-        {error && <p style={{ color: 'var(--danger)', marginBottom: '1rem', textAlign: 'center' }}>{error}</p>}
-        <form onSubmit={handleLogin}>
-          <div className="form-group">
-            <label>Email</label>
-            <input 
-              type="email" 
-              required 
-              value={email} 
-              onChange={(e) => setEmail(e.target.value)} 
-              placeholder="Enter your email"
-            />
-          </div>
-          <div className="form-group">
-            <label>Password</label>
-            <input 
-              type="password" 
-              required 
-              value={password} 
-              onChange={(e) => setPassword(e.target.value)} 
-              placeholder="Enter your password"
-            />
-          </div>
-          <button type="submit" className="btn btn-primary">Login</button>
-        </form>
-        <Link to="/register" className="auth-link">Don't have an account? Register</Link>
+    <div className="app-container">
+      <Sidebar
+        pins={pins}
+        onPinClick={selectPin}
+        onLogout={logoutUser}
+        user={currentUser}
+      />
+
+      <div className="map-container">
+        <div style={{ padding: '10px', fontWeight: 'bold' }}>
+          My Travel Map
+        </div>
+
+        <MapComponent
+          pins={pins}
+          setPins={setPins}
+          flyToCoords={selectedCoords}
+          user={currentUser}
+        />
       </div>
     </div>
   );
 };
 
-export default Login;
+export default MainMap;
